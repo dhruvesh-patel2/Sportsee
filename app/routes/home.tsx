@@ -1,13 +1,12 @@
-import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
+import { Link } from "react-router";
 
 export default function Home() {
-  return <Welcome />;
+  return (
+    <div>
+      <h1>Accueil</h1>
+      <p>Page publique</p>
+
+      <Link to="/login">Aller vers la connexion</Link>
+    </div>
+  );
 }
