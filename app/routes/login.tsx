@@ -1,29 +1,24 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router";
 import { saveToken } from "../utils/auth";
+import { UserContext } from "../context/UserContext";
 
 export default function Login() {
-  //formulaire
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  // message d'erreur
-  const [error, setError] = useState("");
-
-  // état de chargement
+  const [error, setError] = useState("")
   const [loading, setLoading] = useState(false);
-
-  // permet de changer de page
   const navigate = useNavigate();
-
-  // envoi du formulaire
+  const context = useContext(UserContext);
+  if (!context) {
+    return <p>Erreur de contexte</p>;
+  }
+  const { setUser } = context;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      // requête vers le backend
       const response = await fetch("http://localhost:8000/api/login", {
         method: "POST",
         headers: {
@@ -31,27 +26,23 @@ export default function Login() {
         },
         body: JSON.stringify({ username, password }),
       });
-
-      // on lit la réponse JSON
       const data = await response.json();
-
-      console.log("Réponse API :", data);
-
-      // si token reçu, on le sauvegarde
       if (data.token) {
         saveToken(data.token);
+        setUser({
+          username: username,
+          userId: data.userId,
+        });
         navigate("/dashboard");
       } else {
         setError("Identifiants incorrects");
       }
     } catch (error) {
-      console.error("Erreur login :", error);
       setError("Erreur serveur");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div>
       <h1>Connexion</h1>
@@ -65,9 +56,9 @@ export default function Login() {
             placeholder="sophiemartin"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
           />
         </div>
-
         <div>
           <label htmlFor="password">Mot de passe</label>
           <input
@@ -76,9 +67,9 @@ export default function Login() {
             placeholder="password123"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
           />
         </div>
-
         <button type="submit" disabled={loading}>
           {loading ? "Connexion..." : "Se connecter"}
         </button>
