@@ -2,11 +2,12 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router";
 import { saveToken } from "../utils/auth";
 import { UserContext } from "../context/UserContext";
+import "../css/login.css";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("")
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const context = useContext(UserContext);
@@ -44,38 +45,64 @@ export default function Login() {
     }
   };
   return (
-    <div>
-      <h1>Connexion</h1>
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="username">Nom d'utilisateur</label>
-          <input
-            id="username"
-            type="text"
-            placeholder="sophiemartin"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
-          />
+    <main className="login-page">
+      <section className="login-page__left">
+        <div className="login-page__logo">
+          <img src="/logo-sportsee.png" alt="SportSee" />
         </div>
-        <div>
-          <label htmlFor="password">Mot de passe</label>
-          <input
-            id="password"
-            type="password"
-            placeholder="password123"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? "Connexion..." : "Se connecter"}
-        </button>
-      </form>
 
-      {error && <p>{error}</p>}
-    </div>
+        <div className="login-card">
+          <h1 className="login-card__title">
+            Transformez
+            <br />
+            vos stats en résultats
+          </h1>
+
+          <h2 className="login-card__subtitle">Se connecter</h2>
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="login-form__group">
+              <label htmlFor="username">Adresse email</label>
+              <input
+                id="username"
+                type="text"
+                placeholder=""
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+              />
+            </div>
+
+            <div className="login-form__group">
+              <label htmlFor="password">Mot de passe</label>
+              <input
+                id="password"
+                type="password"
+                placeholder=""
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+
+            <button className="login-form__button" type="submit" disabled={loading}>
+              {loading ? "Connexion..." : "Se connecter"}
+            </button>
+          </form>
+
+          <p className="login-card__forgot">Mot de passe oublié ?</p>
+
+          {error && <p className="login-card__error">{error}</p>}
+        </div>
+      </section>
+
+      <section className="login-page__right">
+        <img
+          className="login-page__image"
+          src="/login-runner.png"
+          alt="Course à pied"
+        />
+      </section>
+    </main>
   );
 }
