@@ -4,6 +4,8 @@ import { getToken } from "../utils/auth";
 import { UserContext } from "../context/UserContext";
 import Header from "../components/Header";
 import ProfileBanner from "../components/ProfileBanner";
+import DistanceCard from "../components/DistanceCard";
+import "../css/dashboard.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,9 +15,7 @@ export default function Dashboard() {
   if (!context) {
     return <p>Erreur de contexte</p>;
   }
-
   const { setUser } = context;
-
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -24,20 +24,23 @@ export default function Dashboard() {
     }
     setChecked(true);
   }, [navigate]);
-
   const handleLogout = () => {
     setUser(null);
   };
-
   if (!checked) {
     return <p>Vérification...</p>;
   }
-
   return (
     <>
       <Header onLogout={handleLogout} />
-      <main>
+      <main className="dashboard">
         <ProfileBanner />
+       <section className="dashboard__performances">
+          <h2 className="dashboard__section-title">Vos dernières performances</h2>
+          <div className="dashboard__cards">
+            <DistanceCard />
+          </div>
+        </section>
       </main>
     </>
   );

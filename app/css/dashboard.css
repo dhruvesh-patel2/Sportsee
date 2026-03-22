@@ -147,3 +147,141 @@
     justify-content: space-between;
   }
 }
+.distance-card {
+  margin-left: 280px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px 32px 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  min-height: 385px;
+  margin-top: 20px;
+}
+
+.distance-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.distance-card__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1b35ff;
+}
+
+.distance-card__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+.distance-card__period {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #3a3a3a;
+  white-space: nowrap;
+}
+
+.distance-card__arrow {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #9a9a9a;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.distance-card__chart {
+  width: 100%;
+  height: 260px;
+}
+
+.distance-card__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #7a7a7a;
+}
+
+.distance-card__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7c83ff;
+  display: inline-block;
+}
+.dashboard__section-title {
+margin-top: 100px;
+  margin-left: 290px;
+  font-size: medium;
+  font-weight: 600; 
+}
+.distance-card__tooltip {
+  background: #111111;
+  color: #ffffff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.distance-card__tooltip-date {
+  margin: 0 0 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: #d6d6d6;
+}
+
+.distance-card__tooltip-value {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #ffffff;
+}
+.distance-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.distance-card__header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.distance-card__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1b35ff;
+}
+
+.distance-card__subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #8a8a8a;
+  white-space: nowrap;
+}
+
+.distance-card__period {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #3a3a3a;
+  white-space: nowrap;
+}
