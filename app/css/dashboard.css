@@ -1,0 +1,149 @@
+.header {
+  width: 100%;
+  background: #f3f3fb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 24px;
+  box-sizing: border-box;
+}
+
+.header__container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header__logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.header__logo-img {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.header__link,
+.header__logout {
+  font-size: 13px;
+  font-weight: 500;
+  color: #2f2f2f;
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: 0.2s ease;
+}
+
+.header__link:hover,
+.header__logout:hover {
+  background: #f4f4f8;
+}
+
+.header__logout {
+  color: #3b4cff;
+}
+
+.profile-banner {
+  max-width: 1355px;
+  margin: 48px auto 0;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  box-sizing: border-box;
+  margin-top: 100px;
+}
+
+.profile-banner__left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.profile-banner__image {
+  width: 84px;
+  height: 84px;
+  border-radius: 16px;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-banner__infos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-banner__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111111;
+}
+
+.profile-banner__member {
+  margin: 0;
+  font-size: 14px;
+  color: #7a7a7a;
+}
+
+.profile-banner__right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-banner__label {
+  margin: 0;
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+.profile-banner__distance-card {
+  min-width: 146px;
+  height: 72px;
+  padding: 0 24px;
+  border-radius: 14px;
+  background: #1738ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.profile-banner__distance-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .profile-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-banner__right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
