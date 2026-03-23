@@ -13,7 +13,7 @@ export default function Footer() {
         <div className="footer__right">
           <a href="#">Conditions générales</a>
           <a href="#">Contact</a>
-          <img src="/logo.png" alt="logo" className="footer__logo" />
+          <img src="/Icon-logo.png" alt="logo" className="footer__logo" />
         </div>
 
       </div>

@@ -14,7 +14,7 @@ export default function ProfileBanner() {
   const { profile, statistics } = mockUserInfo;
 
   return (
-    <section className="profile-banner">
+    <section className="profile-banner profile-banner--animated">
       <div className="profile-banner__left">
         <img
           src={profile.profilePicture}
@@ -33,11 +33,19 @@ export default function ProfileBanner() {
 
       <div className="profile-banner__right">
         <p className="profile-banner__label">Distance totale parcourue</p>
+
         <div className="profile-banner__distance-card">
-          <span className="profile-banner__distance-value">
-            {Math.round(statistics.totalDistance)} km
-          </span>
-        </div>
+          <div className="profile-banner__distance-content">
+            <img
+              src="/OUTLINE.png"
+              alt="Icône distance"
+              className="profile-banner__distance-icon"
+            />
+            <span className="profile-banner__distance-value">
+              {Math.round(statistics.totalDistance)} km
+            </span>
+          </div>
+              </div>
       </div>
     </section>
   );

@@ -582,3 +582,38 @@ body {
 .footer__logo {
   height: 18px;
 }
+.profile-banner__distance-card {
+  min-width: 130px;
+  height: 62px;
+  padding: 0 22px;
+  border-radius: 12px;
+  background: #1738ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* contenu animé */
+.profile-banner__distance-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* effet hover uniquement sur contenu */
+.profile-banner__distance-card:hover .profile-banner__distance-content {
+  opacity: 0.7;
+  transform: translateY(-2px);
+}
+
+.profile-banner__distance-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.profile-banner__distance-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}

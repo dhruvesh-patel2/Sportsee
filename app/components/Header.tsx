@@ -21,7 +21,7 @@ type HeaderProps = {
       <header className="header">
         <div className="header__container">
           <Link to="/dashboard" className="header__logo">
-            <img src="/logo.png" alt="Logo SportSee" className="header__logo-img" />
+            <img src="/Logo.png" alt="Logo SportSee" className="header__logo-img" />
           </Link>
           <nav className="header__nav">
             <Link to="/dashboard" className="header__link">Dashboard</Link>
