@@ -25,7 +25,7 @@ type HeaderProps = {
           </Link>
           <nav className="header__nav">
             <Link to="/dashboard" className="header__link">Dashboard</Link>
-            <span className="header__link">Mon profil</span>
+            <Link to="/profile" className="header__link">Mon profil</Link>
             <button type="button" className="header__logout" onClick={handleLogout}>Se déconnecter</button>
           </nav>
         </div>
