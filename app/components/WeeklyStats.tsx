@@ -66,7 +66,7 @@ export default function WeeklyStats() {
             <span>{remaining} restantes</span>
           </div>
         </div>
-
+ 
         {/* RIGHT */}
         <div className="weekly__right">
           <div className="weekly__mini">
