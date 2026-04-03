@@ -1,5 +1,18 @@
-import { mockUserInfo } from "../mocks/mockData";
 import "../css/dashboard.css";
+
+type ProfileBannerProps = {
+  data: {
+    profile: {
+      firstName: string;
+      lastName: string;
+      createdAt: string;
+      profilePicture: string;
+    };
+    statistics: {
+      totalDistance: number;
+    };
+  };
+};
 
 function formatJoinDate(dateString: string) {
   const date = new Date(dateString);
@@ -10,8 +23,8 @@ function formatJoinDate(dateString: string) {
   });
 }
 
-export default function ProfileBanner() {
-  const { profile, statistics } = mockUserInfo;
+export default function ProfileBanner({ data }: ProfileBannerProps) {
+  const { profile, statistics } = data;
 
   return (
     <section className="profile-banner profile-banner--animated">
@@ -45,7 +58,7 @@ export default function ProfileBanner() {
               {Math.round(statistics.totalDistance)} km
             </span>
           </div>
-              </div>
+        </div>
       </div>
     </section>
   );
