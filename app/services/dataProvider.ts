@@ -1,21 +1,34 @@
 import { mockUserInfo, mockUserActivity } from "../mocks/mockData";
+import { fetchUserInfo, fetchUserActivity } from "./api";
 
 const USE_MOCK = false;
 
-export const getUserInfo = async () => {
+function getDateRangeForActivity() {
+  const now = new Date();
+
+  const endWeek = now.toISOString().split("T")[0];
+
+  const startDate = new Date();
+  startDate.setDate(now.getDate() - 60);
+
+  const startWeek = startDate.toISOString().split("T")[0];
+
+  return { startWeek, endWeek };
+}
+
+export async function getUserInfo(token: string) {
   if (USE_MOCK) {
     return mockUserInfo;
   }
 
-  const res = await fetch("http://localhost:8000/user");
-  return res.json();
-};
+  return fetchUserInfo(token);
+}
 
-export const getUserActivity = async () => {
+export async function getUserActivity(token: string) {
   if (USE_MOCK) {
     return mockUserActivity;
   }
 
-  const res = await fetch("http://localhost:8000/activity");
-  return res.json();
-};
+  const { startWeek, endWeek } = getDateRangeForActivity();
+  return fetchUserActivity(token, startWeek, endWeek);
+}
