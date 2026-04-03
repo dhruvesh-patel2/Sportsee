@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getToken, removeToken } from "../utils/auth";
 import { UserContext } from "../context/UserContext";
-import { mockUserInfo, mockUserActivity } from "../mocks/mockData";
+import { getUserInfo, getUserActivity } from "../services/dataProvider";
 import Header from "../components/Header";
 import "../css/profile.css";
 
@@ -17,8 +17,12 @@ function formatJoinDate(dateString: string) {
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [checked, setChecked] = useState(false);
   const context = useContext(UserContext);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [activity, setActivity] = useState<any[]>([]);
 
   if (!context) {
     return <p>Erreur de contexte</p>;
@@ -28,11 +32,34 @@ export default function Profile() {
 
   useEffect(() => {
     const token = getToken();
+
     if (!token) {
       navigate("/");
       return;
     }
-    setChecked(true);
+
+    async function loadData() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const authToken: string = token!;
+
+        const [userData, activityData] = await Promise.all([
+          getUserInfo(authToken),
+          getUserActivity(authToken),
+        ]);
+
+        setUserInfo(userData);
+        setActivity(activityData);
+      } catch {
+        setError("Erreur lors du chargement du profil");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -41,28 +68,36 @@ export default function Profile() {
     navigate("/");
   };
 
-  if (!checked) {
+  if (loading) {
     return <p>Vérification...</p>;
   }
 
-  const { profile } = mockUserInfo;
+  if (error) {
+    return <p>{error}</p>;
+  }
 
-  const totalCalories = mockUserActivity.reduce(
-    (total, activity) => total + activity.caloriesBurned,
+  if (!userInfo) {
+    return <p>Données indisponibles</p>;
+  }
+
+  const { profile } = userInfo;
+
+  const totalCalories = activity.reduce(
+    (total, item) => total + item.caloriesBurned,
     0
   );
 
-  const totalDistance = mockUserActivity.reduce(
-    (total, activity) => total + activity.distance,
+  const totalDistance = activity.reduce(
+    (total, item) => total + item.distance,
     0
   );
 
-  const totalDuration = mockUserActivity.reduce(
-    (total, activity) => total + activity.duration,
+  const totalDuration = activity.reduce(
+    (total, item) => total + item.duration,
     0
   );
 
-  const totalSessions = mockUserActivity.length;
+  const totalSessions = activity.length;
   const totalRestDays = Math.max(0, 30 - totalSessions);
 
   const hours = Math.floor(totalDuration / 60);
@@ -97,7 +132,7 @@ export default function Profile() {
 
               <div className="profile-card__details-list">
                 <p><strong>Âge :</strong> {profile.age}</p>
-                <p><strong>Genre :</strong> Femme</p>
+                <p><strong>Genre :</strong> {profile.gender === "male" ? "Homme" : "Femme"} </p>
                 <p><strong>Taille :</strong> {profile.height} cm</p>
                 <p><strong>Poids :</strong> {profile.weight} kg</p>
               </div>

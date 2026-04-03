@@ -8,7 +8,7 @@ type WeeklyStatsProps = {
 const COLORS = ["#1f38ff", "#d6d9f5"];
 
 // objectif fixe du nombre de courses
-const goal = 6;
+const goal = 12;
 
 export default function WeeklyStats({ data }: WeeklyStatsProps) {
   // nombre total d'activités réalisées

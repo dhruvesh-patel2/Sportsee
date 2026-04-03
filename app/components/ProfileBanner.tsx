@@ -1,5 +1,6 @@
 import "../css/dashboard.css";
 
+// type des données reçues par le composant
 type ProfileBannerProps = {
   data: {
     profile: {
@@ -14,6 +15,7 @@ type ProfileBannerProps = {
   };
 };
 
+// fonction pour formater la date en français
 function formatJoinDate(dateString: string) {
   const date = new Date(dateString);
   return date.toLocaleDateString("fr-FR", {
@@ -23,7 +25,9 @@ function formatJoinDate(dateString: string) {
   });
 }
 
+// composant bannière du profil
 export default function ProfileBanner({ data }: ProfileBannerProps) {
+  // on récupère les infos du profil et les statistiques
   const { profile, statistics } = data;
 
   return (
@@ -38,12 +42,15 @@ export default function ProfileBanner({ data }: ProfileBannerProps) {
           <h2 className="profile-banner__name">
             {profile.firstName} {profile.lastName}
           </h2>
+
+          {/* date d'inscription */}
           <p className="profile-banner__member">
             Membre depuis le {formatJoinDate(profile.createdAt)}
           </p>
         </div>
       </div>
 
+      {/* partie droite : statistique principale */}
       <div className="profile-banner__right">
         <p className="profile-banner__label">Distance totale parcourue</p>
 
@@ -54,6 +61,8 @@ export default function ProfileBanner({ data }: ProfileBannerProps) {
               alt="Icône distance"
               className="profile-banner__distance-icon"
             />
+
+            {/* affichage de la distance totale arrondie */}
             <span className="profile-banner__distance-value">
               {Math.round(statistics.totalDistance)} km
             </span>
