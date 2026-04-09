@@ -81,23 +81,29 @@ export default function Profile() {
   }
 
   const { profile } = userInfo;
+  const statistics = userInfo.statistics ?? {};
 
-  const totalCalories = activity.reduce(
+  const activityTotalCalories = activity.reduce(
     (total, item) => total + item.caloriesBurned,
     0
   );
 
-  const totalDistance = activity.reduce(
+  const activityTotalDistance = activity.reduce(
     (total, item) => total + item.distance,
     0
   );
 
-  const totalDuration = activity.reduce(
+  const activityTotalDuration = activity.reduce(
     (total, item) => total + item.duration,
     0
   );
 
-  const totalSessions = activity.length;
+  const activityTotalSessions = activity.length;
+
+  const totalCalories = statistics.totalCalories ?? activityTotalCalories;
+  const totalDistance = statistics.totalDistance ?? activityTotalDistance;
+  const totalDuration = statistics.totalDuration ?? activityTotalDuration;
+  const totalSessions = statistics.totalSessions ?? activityTotalSessions;
   const totalRestDays = Math.max(0, 30 - totalSessions);
 
   const hours = Math.floor(totalDuration / 60);

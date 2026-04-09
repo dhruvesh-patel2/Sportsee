@@ -1,6 +1,24 @@
 // URL de base de l'API backend
 const API_URL = "http://localhost:8000/api";
 
+function normalizeStatistics(statistics: any) {
+  return {
+    ...statistics,
+    totalDistance:
+      statistics?.totalDistance != null
+        ? Number(statistics.totalDistance)
+        : undefined,
+    totalSessions:
+      statistics?.totalSessions != null
+        ? Number(statistics.totalSessions)
+        : undefined,
+    totalDuration:
+      statistics?.totalDuration != null
+        ? Number(statistics.totalDuration)
+        : undefined,
+  };
+}
+
 // normalise les données utilisateur pour avoir une structure cohérente côté front
 function normalizeUserInfo(data: any) {
   const profileSource = data?.profile ?? {};
@@ -21,7 +39,7 @@ function normalizeUserInfo(data: any) {
         data?.gender ??
         null,
     },
-    statistics: statisticsSource,
+    statistics: normalizeStatistics(statisticsSource),
   };
 }
 
