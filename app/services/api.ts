@@ -1,109 +1,95 @@
-// URL de base de l'API backend
+import { normalizeActivityResponse } from "../utils/activity";
+
 const API_URL = "http://localhost:8000/api";
 
-function normalizeStatistics(statistics: any) {
+// Effectue une requête authentifiée vers l'API et retourne les données JSON.
+// Lance une erreur si la réponse n'est pas OK.
+async function apiFetch(url: string, token: string) {
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur API ${response.status} : ${url}`);
+  }
+
+  return response.json();
+}
+
+// Convertit une valeur en nombre si elle est définie, sinon retourne undefined.
+function toOptionalNumber(value: unknown) {
+  return value != null ? Number(value) : undefined;
+}
+
+// Normalise le genre reçu de l'API vers "male" ou "female".
+// L'API peut retourner différentes valeurs selon la langue ou le format.
+function normalizeGender(gender: unknown) {
+  if (typeof gender !== "string") return null;
+
+  const normalized = gender.trim().toLowerCase();
+
+  if (["male", "man", "homme", "masculin", "m"].includes(normalized)) return "male";
+  if (["female", "woman", "femme", "feminin", "féminin", "f"].includes(normalized)) return "female";
+
+  return null;
+}
+
+// Convertit les champs numériques des statistiques qui peuvent arriver en string.
+function normalizeStatistics(stats: any) {
   return {
-    ...statistics,
-    totalDistance:
-      statistics?.totalDistance != null
-        ? Number(statistics.totalDistance)
-        : undefined,
-    totalSessions:
-      statistics?.totalSessions != null
-        ? Number(statistics.totalSessions)
-        : undefined,
-    totalDuration:
-      statistics?.totalDuration != null
-        ? Number(statistics.totalDuration)
-        : undefined,
+    ...stats,
+    totalDistance: toOptionalNumber(stats?.totalDistance),
+    totalSessions: toOptionalNumber(stats?.totalSessions),
+    totalDuration: toOptionalNumber(stats?.totalDuration),
   };
 }
 
-// normalise les données utilisateur pour avoir une structure cohérente côté front
+// Normalise les données utilisateur pour avoir une structure cohérente côté front.
+// L'API peut retourner les infos dans "profile" ou "userInfos" selon la version.
 function normalizeUserInfo(data: any) {
   const profileSource = data?.profile ?? {};
   const userInfosSource = data?.userInfos ?? {};
-  const statisticsSource = data?.statistics ?? {};
 
   return {
     ...data,
     profile: {
-      // fusionne les infos venant de userInfos et profile
       ...userInfosSource,
       ...profileSource,
-
-      // récupère le genre même s'il est stocké à différents endroits
-      gender:
-        profileSource.gender ??
-        userInfosSource.gender ??
-        data?.gender ??
-        null,
+      gender: normalizeGender(
+        profileSource.gender ?? userInfosSource.gender ?? data?.gender
+      ),
     },
-    statistics: normalizeStatistics(statisticsSource),
+    statistics: normalizeStatistics(data?.statistics ?? {}),
   };
 }
 
-// envoie les identifiants au backend pour connecter l'utilisateur
+// Connecte l'utilisateur avec ses identifiants.
 export async function loginUser(username: string, password: string) {
   const response = await fetch(`${API_URL}/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
 
-  // si la connexion échoue, on envoie une erreur
   if (!response.ok) {
     throw new Error("Identifiants invalides");
   }
 
-  // retourne la réponse de l'API
   return response.json();
 }
 
-// récupère les informations du profil utilisateur
 export async function fetchUserInfo(token: string) {
-  const response = await fetch(`${API_URL}/user-info`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  // si la requête échoue, on envoie une erreur
-  if (!response.ok) {
-    throw new Error("Impossible de charger le profil");
-  }
-
-  // transforme les données avant de les renvoyer au front
-  const data = await response.json();
+  const data = await apiFetch(`${API_URL}/user-info`, token);
   return normalizeUserInfo(data);
 }
 
-// récupère les activités de l'utilisateur sur une période donnée
-export async function fetchUserActivity(
-  token: string,
-  startWeek: string,
-  endWeek: string
-) {
-  const response = await fetch(
-    `${API_URL}/user-activity?startWeek=${encodeURIComponent(startWeek)}&endWeek=${encodeURIComponent(endWeek)}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+export async function fetchUserGoal(token: string) {
+  const data = await apiFetch(`${API_URL}/user-goal`, token);
+  return typeof data.goal === "number" ? data.goal : 0;
+}
 
-  // si la requête échoue, on envoie une erreur
-  if (!response.ok) {
-    throw new Error("Impossible de charger les activités");
-  }
-
-  // retourne les données d'activité
-  return response.json();
+export async function fetchUserActivity(token: string, startWeek: string, endWeek: string) {
+  const url = `${API_URL}/user-activity?startWeek=${encodeURIComponent(startWeek)}&endWeek=${encodeURIComponent(endWeek)}`;
+  const data = await apiFetch(url, token);
+  return normalizeActivityResponse(data);
 }

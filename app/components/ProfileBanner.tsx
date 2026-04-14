@@ -1,4 +1,4 @@
-import "../css/dashboard.css";
+import "../css/profile-banner.css";
 
 // type des données reçues par le composant
 type ProfileBannerProps = {

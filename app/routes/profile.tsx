@@ -3,16 +3,56 @@ import { useNavigate } from "react-router";
 import { getToken, removeToken } from "../utils/auth";
 import { UserContext } from "../context/UserContext";
 import { getUserInfo, getUserActivity } from "../services/dataProvider";
+import type { UserActivity } from "../utils/activity";
 import Header from "../components/Header";
 import "../css/profile.css";
 
 function formatJoinDate(dateString: string) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("fr-FR", {
+  return new Date(dateString).toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
+}
+
+function formatGenderLabel(gender: string | null | undefined) {
+  if (gender === "male") return "Homme";
+  if (gender === "female") return "Femme";
+  return "Non renseigné";
+}
+
+function formatHeight(height: number | string | null | undefined) {
+  const cm =
+    Number(height) >= 3
+      ? Math.round(Number(height))
+      : Math.round(Number(height) * 100);
+
+  if (!Number.isFinite(cm) || cm <= 0) return "Non renseignée";
+
+  return `${Math.floor(cm / 100)}m${String(cm % 100).padStart(2, "0")}`;
+}
+
+// Calcule le nombre de jours sans activité depuis la date d'inscription.
+function getRestDaysCount(activity: UserActivity[], startWeek: string | null | undefined) {
+  if (!startWeek) return 0;
+
+  const today = new Date().toISOString().split("T")[0];
+  const startDate = new Date(`${startWeek}T00:00:00Z`);
+  const endDate = new Date(`${today}T00:00:00Z`);
+  const oneDayMs = 24 * 60 * 60 * 1000;
+
+  const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / oneDayMs) + 1;
+
+  const activeDays = new Set(
+    activity
+      .filter((item) => {
+        const d = new Date(`${item.date}T00:00:00Z`);
+        return d >= startDate && d <= endDate;
+      })
+      .map((item) => item.date)
+  ).size;
+
+  return Math.max(0, totalDays - activeDays);
 }
 
 export default function Profile() {
@@ -22,11 +62,9 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<any>(null);
-  const [activity, setActivity] = useState<any[]>([]);
+  const [activity, setActivity] = useState<UserActivity[]>([]);
 
-  if (!context) {
-    return <p>Erreur de contexte</p>;
-  }
+  if (!context) return <p>Erreur de contexte</p>;
 
   const { setUser } = context;
 
@@ -44,14 +82,11 @@ export default function Profile() {
         setError(null);
 
         const authToken: string = token!;
-
-        const [userData, activityData] = await Promise.all([
-          getUserInfo(authToken),
-          getUserActivity(authToken),
-        ]);
+        const userData = await getUserInfo(authToken);
+        const activityResponse = await getUserActivity(authToken, userData?.profile?.createdAt);
 
         setUserInfo(userData);
-        setActivity(activityData);
+        setActivity(activityResponse.activities);
       } catch {
         setError("Erreur lors du chargement du profil");
       } finally {
@@ -68,43 +103,29 @@ export default function Profile() {
     navigate("/");
   };
 
-  if (loading) {
-    return <p>Vérification...</p>;
-  }
-
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-  if (!userInfo) {
-    return <p>Données indisponibles</p>;
-  }
+  if (loading) return <p>Vérification...</p>;
+  if (error) return <p>{error}</p>;
+  if (!userInfo) return <p>Données indisponibles</p>;
 
   const { profile } = userInfo;
   const statistics = userInfo.statistics ?? {};
 
-  const activityTotalCalories = activity.reduce(
-    (total, item) => total + item.caloriesBurned,
-    0
+  // Calcule les totaux d'activité en un seul parcours du tableau.
+  // On préfère les statistiques de l'API quand elles existent, sinon on recalcule depuis les activités.
+  const activityTotals = activity.reduce(
+    (acc, item) => ({
+      calories: acc.calories + item.caloriesBurned,
+      distance: acc.distance + item.distance,
+      duration: acc.duration + item.duration,
+    }),
+    { calories: 0, distance: 0, duration: 0 }
   );
 
-  const activityTotalDistance = activity.reduce(
-    (total, item) => total + item.distance,
-    0
-  );
-
-  const activityTotalDuration = activity.reduce(
-    (total, item) => total + item.duration,
-    0
-  );
-
-  const activityTotalSessions = activity.length;
-
-  const totalCalories = statistics.totalCalories ?? activityTotalCalories;
-  const totalDistance = statistics.totalDistance ?? activityTotalDistance;
-  const totalDuration = statistics.totalDuration ?? activityTotalDuration;
-  const totalSessions = statistics.totalSessions ?? activityTotalSessions;
-  const totalRestDays = Math.max(0, 30 - totalSessions);
+  const totalCalories = statistics.totalCalories ?? activityTotals.calories;
+  const totalDistance = statistics.totalDistance ?? activityTotals.distance;
+  const totalDuration = statistics.totalDuration ?? activityTotals.duration;
+  const totalSessions = statistics.totalSessions ?? activity.length;
+  const totalRestDays = getRestDaysCount(activity, profile.createdAt);
 
   const hours = Math.floor(totalDuration / 60);
   const minutes = totalDuration % 60;
@@ -122,7 +143,6 @@ export default function Profile() {
                 alt={`${profile.firstName} ${profile.lastName}`}
                 className="profile-card__image"
               />
-
               <div className="profile-card__identity-text">
                 <h1 className="profile-card__name">
                   {profile.firstName} {profile.lastName}
@@ -135,11 +155,10 @@ export default function Profile() {
 
             <article className="profile-card profile-card--details">
               <h2 className="profile-card__title">Votre profil</h2>
-
               <div className="profile-card__details-list">
                 <p><strong>Âge :</strong> {profile.age}</p>
-                <p><strong>Genre :</strong> {profile.gender === "male" ? "Homme" : "Femme"} </p>
-                <p><strong>Taille :</strong> {profile.height} cm</p>
+                <p><strong>Genre :</strong> {formatGenderLabel(profile.gender)}</p>
+                <p><strong>Taille :</strong> {formatHeight(profile.height)}</p>
                 <p><strong>Poids :</strong> {profile.weight} kg</p>
               </div>
             </article>

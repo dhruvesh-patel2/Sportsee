@@ -1,42 +1,38 @@
 import { mockUserInfo, mockUserActivity } from "../mocks/mockData";
-import { fetchUserInfo, fetchUserActivity } from "./api";
+import { fetchUserInfo, fetchUserActivity, fetchUserGoal } from "./api";
+import { getWeeklyDistanceData } from "../utils/activity";
 
-// permet de choisir entre les données mockées et l'API
+// Mettre à true pour utiliser les données de test sans backend.
 const USE_MOCK = false;
 
-// calcule une période de dates pour récupérer les activités
-function getDateRangeForActivity() {
-  const now = new Date();
-
-  // date de fin = aujourd'hui
-  const endWeek = now.toISOString().split("T")[0];
-
-  // date de début = il y a 60 jours
-  const startDate = new Date();
-  startDate.setDate(now.getDate() - 60);
-
-  const startWeek = startDate.toISOString().split("T")[0];
-
-  return { startWeek, endWeek };
+// Retourne une date 5 ans dans le futur, utilisée comme borne haute pour les requêtes d'activité.
+export function getFutureActivityEndDate(yearsAhead = 5) {
+  const endDate = new Date();
+  endDate.setFullYear(endDate.getFullYear() + yearsAhead);
+  return endDate.toISOString().split("T")[0];
 }
 
-// récupère les infos utilisateur
 export async function getUserInfo(token: string) {
-  // si le mode mock est activé, on retourne les fausses données
-  if (USE_MOCK) {
-    return mockUserInfo;
-  }
-
-  // sinon on appelle l'API
+  if (USE_MOCK) return mockUserInfo;
   return fetchUserInfo(token);
 }
 
-// récupère les activités utilisateur
-export async function getUserActivity(token: string) {
-  // si le mode mock est activé, on retourne les fausses données
+export async function getUserGoal(token: string) {
+  if (USE_MOCK) return 6;
+  return fetchUserGoal(token);
+}
+
+export async function getUserActivity(token: string, startWeek?: string, endWeek?: string) {
   if (USE_MOCK) {
-    return mockUserActivity;
+    return {
+      activities: mockUserActivity,
+      runningData: getWeeklyDistanceData(mockUserActivity),
+    };
   }
-  const { startWeek, endWeek } = getDateRangeForActivity();
-  return fetchUserActivity(token, startWeek, endWeek);
+
+  return fetchUserActivity(
+    token,
+    startWeek ?? "2000-01-01",
+    endWeek ?? getFutureActivityEndDate()
+  );
 }

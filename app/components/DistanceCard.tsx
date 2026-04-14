@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -7,130 +8,138 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import "../css/dashboard.css";
+import {
+  formatActivityPeriod,
+  formatTooltipActivityPeriod,
+  type WeeklyDistancePoint,
+} from "../utils/activity";
+import "../css/distance-card.css";
 
-// props reçues depuis Dashboard
-// ici on reçoit les données d'activité
+const WEEKS_PER_PAGE = 4;
+
 type DistanceCardProps = {
-  data: any[];
+  runningData: WeeklyDistancePoint[];
 };
 
-export default function DistanceCard({ data }: DistanceCardProps) {
-  // on prend uniquement les 4 dernières activités
-  const lastFourActivities = data.slice(-4);
+type DistanceTooltipProps = {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      week: string;
+      distance: number;
+      startDate: string;
+      endDate: string;
+    };
+  }>;
+};
 
-  // on prépare les données pour le graphique
-  const chartData = lastFourActivities.map((activity, index) => ({
-    // libellé semaine affiché sous le graphique
+// Divise les données en pages de 4 semaines.
+// La première page peut contenir moins de 4 semaines si le total n'est pas un multiple de 4.
+function buildWeekPages(runningData: WeeklyDistancePoint[]) {
+  if (runningData.length === 0) return [[]];
+
+  const pages: WeeklyDistancePoint[][] = [];
+  const remainder = runningData.length % WEEKS_PER_PAGE;
+  let cursor = 0;
+
+  if (remainder > 0) {
+    pages.push(runningData.slice(0, remainder));
+    cursor = remainder;
+  }
+
+  while (cursor < runningData.length) {
+    pages.push(runningData.slice(cursor, cursor + WEEKS_PER_PAGE));
+    cursor += WEEKS_PER_PAGE;
+  }
+
+  return pages;
+}
+
+// Défini en dehors du composant pour éviter une recréation à chaque render.
+function CustomTooltip({ active, payload }: DistanceTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  const { startDate, endDate, distance } = payload[0].payload;
+
+  return (
+    <div className="distance-card__tooltip">
+      <p className="distance-card__tooltip-date">
+        {formatTooltipActivityPeriod(startDate, endDate)}
+      </p>
+      <p className="distance-card__tooltip-value">
+        {distance.toFixed(1).replace(".", ",")} km
+      </p>
+    </div>
+  );
+}
+
+export default function DistanceCard({ runningData }: DistanceCardProps) {
+  const weekPages = buildWeekPages(runningData);
+  const pageCount = weekPages.length;
+  const [pageIndex, setPageIndex] = useState(Math.max(pageCount - 1, 0));
+
+  // Synchronise la page courante quand les données changent.
+  useEffect(() => {
+    setPageIndex(Math.max(pageCount - 1, 0));
+  }, [pageCount]);
+
+  const chartData = weekPages[pageIndex].map((week, index) => ({
+    ...week,
     week: `S${index + 1}`,
-
-    // distance parcourue
-    distance: activity.distance,
-
-    // date brute utile pour le tooltip et la période
-    date: activity.date,
   }));
 
-  // formate la date courte affichée dans la période
-  function formatShortDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-    });
-  }
+  const totalDistance = chartData.reduce((total, item) => total + item.distance, 0);
+  const averageDistance = chartData.length ? totalDistance / chartData.length : 0;
 
-  // formate la date affichée dans le tooltip
-  function formatTooltipDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  }
+  const startDate = chartData[0]?.startDate;
+  const endDate = chartData[chartData.length - 1]?.endDate;
+  const period = startDate && endDate ? formatActivityPeriod(startDate, endDate) : "Aucune donnée";
 
-  // tooltip personnalisé au survol d'une barre
-  function CustomTooltip({ active, payload }: any) {
-    // si aucun élément n'est survolé, on n'affiche rien
-    if (!active || !payload || !payload.length) {
-      return null;
-    }
-
-    // récupération des données du point survolé
-    const tooltipData = payload[0].payload;
-
-    return (
-      <div className="distance-card__tooltip">
-        <p className="distance-card__tooltip-date">
-          {formatTooltipDate(tooltipData.date)}
-        </p>
-        <p className="distance-card__tooltip-value">
-          {tooltipData.distance.toFixed(1).replace(".", ",")} km
-        </p>
-      </div>
-    );
-  }
-
-  // calcule la moyenne des distances sur les 4 dernières activités
-  const averageDistance =
-    chartData.reduce((total, item) => total + item.distance, 0) / chartData.length;
-
-  // récupère la date de début
-  const startDate = chartData[0]?.date;
-
-  // récupère la date de fin
-  const endDate = chartData[chartData.length - 1]?.date;
-
-  // construit le texte de période affiché dans la carte
-  const period =
-    startDate && endDate
-      ? `${formatShortDate(startDate)} - ${formatShortDate(endDate)}`
-      : "";
+  const canGoToPreviousPage = pageIndex > 0;
+  const canGoToNextPage = pageIndex < pageCount - 1;
 
   return (
     <section className="distance-card">
-      {/* en-tête de la carte */}
       <div className="distance-card__header">
         <div className="distance-card__header-left">
-          {/* moyenne affichée en haut */}
           <h3 className="distance-card__title">
             {Math.round(averageDistance)}km en moyenne
           </h3>
-
-          {/* sous-titre */}
           <p className="distance-card__subtitle">
             Total des kilomètres 4 dernières semaines
           </p>
         </div>
 
-        {/* période affichée à droite */}
         <div className="distance-card__period">
-          <button type="button" className="distance-card__arrow">‹</button>
+          <button
+            type="button"
+            className="distance-card__arrow"
+            onClick={() => setPageIndex((p) => Math.max(p - 1, 0))}
+            disabled={!canGoToPreviousPage}
+            aria-label="Afficher les semaines précédentes"
+          >
+            ‹
+          </button>
           <span>{period}</span>
-          <button type="button" className="distance-card__arrow">›</button>
+          <button
+            type="button"
+            className="distance-card__arrow"
+            onClick={() => setPageIndex((p) => Math.min(p + 1, pageCount - 1))}
+            disabled={!canGoToNextPage}
+            aria-label="Afficher les semaines suivantes"
+          >
+            ›
+          </button>
         </div>
       </div>
 
-      {/* zone du graphique */}
       <div className="distance-card__chart">
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={chartData} barCategoryGap={40}>
-            {/* grille de fond horizontale */}
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e7e7e7" />
-
-            {/* axe horizontal avec les semaines */}
             <XAxis dataKey="week" tickLine={false} axisLine={false} />
-
-            {/* axe vertical des distances */}
             <YAxis tickLine={false} axisLine={false} />
-
-            {/* tooltip personnalisé */}
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: "transparent" }}
-            />
-
-            {/* barre de distance */}
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: "transparent" }} />
             <Bar
               dataKey="distance"
               fill="#aeb4ff"
@@ -142,9 +151,8 @@ export default function DistanceCard({ data }: DistanceCardProps) {
         </ResponsiveContainer>
       </div>
 
-      {/* légende sous le graphique */}
       <div className="distance-card__legend">
-        <span className="distance-card__dot"></span>
+        <span className="distance-card__dot" />
         <span>Km</span>
       </div>
     </section>

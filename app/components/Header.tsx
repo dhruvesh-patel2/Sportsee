@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { removeToken } from "../utils/auth";
-import "../css/dashboard.css";
+import "../css/header.css";
 
 type HeaderProps = {
     onLogout?: () => void;

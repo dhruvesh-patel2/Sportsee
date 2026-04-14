@@ -1,18 +1,30 @@
-@import "tailwindcss";
-
-@theme {
+/* police par défaut de l'application */
+:root {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: var(--font-sans);
+}
+
+/* styles globaux de base */
+body {
+  margin: 0;
+  background: #f3f3fb;
+  font-family: Arial, sans-serif;
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  background-color: #ffffff;
+}
 
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
     background-color: #f3f3fb;
   }
 }
+
+/* animation d'entrée des pages */
 .page {
   animation: pageFade 0.4s ease;
 }

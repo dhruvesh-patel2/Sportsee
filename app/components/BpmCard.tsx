@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -8,144 +9,126 @@ import {
   Line,
   ComposedChart,
 } from "recharts";
-import "../css/dashboard.css";
+import {
+  formatActivityPeriod,
+  formatTooltipActivityDate,
+  sortActivitiesByDate,
+  type UserActivity,
+} from "../utils/activity";
+import "../css/bpm-card.css";
 
-// props reçues depuis Dashboard
-// ici on reçoit les données d'activité
+const ACTIVITIES_PER_PAGE = 7;
+const DAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
 type BpmCardProps = {
-  data: any[];
+  data: UserActivity[];
 };
 
-// labels affichés sous le graphique
-const dayLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+type BpmTooltipProps = {
+  active?: boolean;
+  payload?: Array<{
+    payload: {
+      min: number;
+      max: number;
+      average: number;
+      date: string;
+    };
+  }>;
+};
+
+// Défini en dehors du composant pour éviter une recréation à chaque render.
+function CustomBpmTooltip({ active, payload }: BpmTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  const d = payload[0].payload;
+
+  return (
+    <div className="bpm-card__tooltip">
+      <p className="bpm-card__tooltip-date">{formatTooltipActivityDate(d.date)}</p>
+      <p className="bpm-card__tooltip-value">Min : {d.min} BPM</p>
+      <p className="bpm-card__tooltip-value">Max : {d.max} BPM</p>
+      <p className="bpm-card__tooltip-value">Moy : {d.average} BPM</p>
+    </div>
+  );
+}
 
 export default function BpmCard({ data }: BpmCardProps) {
-  // on prend uniquement les 7 dernières activités
-  const lastSevenActivities = data.slice(-7);
+  const sortedActivities = sortActivitiesByDate(data);
+  const pageCount = Math.max(1, Math.ceil(sortedActivities.length / ACTIVITIES_PER_PAGE));
+  const [pageIndex, setPageIndex] = useState(Math.max(pageCount - 1, 0));
 
-  // on transforme les données reçues en format lisible par Recharts
-  const bpmChartData = lastSevenActivities.map((activity, index) => ({
-    // nom du jour affiché sous le graphique
-    day: dayLabels[index],
+  // Synchronise la page courante quand les données changent.
+  useEffect(() => {
+    setPageIndex(Math.max(pageCount - 1, 0));
+  }, [pageCount]);
 
-    // bpm minimum
+  const pageStart = pageIndex * ACTIVITIES_PER_PAGE;
+  const visibleActivities = sortedActivities.slice(pageStart, pageStart + ACTIVITIES_PER_PAGE);
+
+  const bpmChartData = visibleActivities.map((activity, index) => ({
+    day: DAY_LABELS[index % DAY_LABELS.length],
     min: activity.heartRate.min,
-
-    // bpm maximum
     max: activity.heartRate.max,
-
-    // bpm moyen
     average: activity.heartRate.average,
-
-    // date brute utile pour le tooltip et la période
     date: activity.date,
   }));
 
-  // formate une date courte pour la période affichée en haut
-  function formatShortDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-    });
-  }
-
-  // formate la date affichée dans le tooltip
-  function formatTooltipDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  }
-
-  // tooltip personnalisé affiché au survol d'une barre
-  function CustomBpmTooltip({ active, payload }: any) {
-    // si rien n'est survolé, on n'affiche rien
-    if (!active || !payload || !payload.length) {
-      return null;
-    }
-
-    // récupération des données du point survolé
-    const d = payload[0].payload;
-
-    return (
-      <div className="bpm-card__tooltip">
-        <p className="bpm-card__tooltip-date">{formatTooltipDate(d.date)}</p>
-        <p className="bpm-card__tooltip-value">Min : {d.min} BPM</p>
-        <p className="bpm-card__tooltip-value">Max : {d.max} BPM</p>
-        <p className="bpm-card__tooltip-value">Moy : {d.average} BPM</p>
-      </div>
-    );
-  }
-
-  // calcule la moyenne générale du BPM sur les 7 activités
   const averageBpm =
-    bpmChartData.reduce((total, item) => total + item.average, 0) /
-    bpmChartData.length;
+    bpmChartData.length > 0
+      ? bpmChartData.reduce((total, item) => total + item.average, 0) / bpmChartData.length
+      : 0;
 
-  // récupère la date de début
   const startDate = bpmChartData[0]?.date;
-
-  // récupère la date de fin
   const endDate = bpmChartData[bpmChartData.length - 1]?.date;
+  const period = startDate && endDate ? formatActivityPeriod(startDate, endDate) : "Aucune donnée";
 
-  // construit le texte de période affiché en haut de la carte
-  const period =
-    startDate && endDate
-      ? `${formatShortDate(startDate)} - ${formatShortDate(endDate)}`
-      : "";
+  const canGoToPreviousPage = pageIndex > 0;
+  const canGoToNextPage = pageIndex < pageCount - 1;
 
   return (
     <section className="bpm-card">
-      {/* en-tête de la carte */}
       <div className="bpm-card__header">
         <div className="bpm-card__header-left">
-          {/* valeur moyenne globale */}
           <h3 className="bpm-card__title">{Math.round(averageBpm)} BPM</h3>
-
-          {/* sous-titre */}
           <p className="bpm-card__subtitle">Fréquence cardiaque moyenne</p>
         </div>
 
-        {/* période affichée à droite */}
         <div className="bpm-card__period">
-          <button type="button" className="bpm-card__arrow">‹</button>
+          <button
+            type="button"
+            className="bpm-card__arrow"
+            onClick={() => setPageIndex((p) => Math.max(p - 1, 0))}
+            disabled={!canGoToPreviousPage}
+            aria-label="Afficher les activités précédentes"
+          >
+            ‹
+          </button>
           <span>{period}</span>
-          <button type="button" className="bpm-card__arrow">›</button>
+          <button
+            type="button"
+            className="bpm-card__arrow"
+            onClick={() => setPageIndex((p) => Math.min(p + 1, pageCount - 1))}
+            disabled={!canGoToNextPage}
+            aria-label="Afficher les activités suivantes"
+          >
+            ›
+          </button>
         </div>
       </div>
 
-      {/* zone du graphique */}
       <div className="bpm-card__chart">
         <ResponsiveContainer width="100%" height={290}>
           <ComposedChart data={bpmChartData} barCategoryGap={22}>
-            {/* grille de fond horizontale */}
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e7e7e7" />
-
-            {/* axe horizontal avec les jours */}
             <XAxis dataKey="day" tickLine={false} axisLine={false} />
-
-            {/* axe vertical avec les valeurs bpm */}
             <YAxis
               domain={[130, 187]}
               ticks={[130, 145, 160, 187]}
               tickLine={false}
               axisLine={false}
             />
-
-            {/* tooltip personnalisé */}
             <Tooltip content={<CustomBpmTooltip />} cursor={{ fill: "transparent" }} />
-
-            {/* barre bpm minimum */}
-            <Bar
-              dataKey="min"
-              fill="#f3b8ac"
-              radius={[10, 10, 10, 10]}
-              barSize={14}
-            />
-
-            {/* barre bpm maximum */}
+            <Bar dataKey="min" fill="#f3b8ac" radius={[10, 10, 10, 10]} barSize={14} />
             <Bar
               dataKey="max"
               fill="#ff3b0a"
@@ -153,8 +136,6 @@ export default function BpmCard({ data }: BpmCardProps) {
               radius={[10, 10, 10, 10]}
               barSize={14}
             />
-
-            {/* ligne bpm moyen */}
             <Line
               type="monotone"
               dataKey="average"
@@ -167,19 +148,18 @@ export default function BpmCard({ data }: BpmCardProps) {
         </ResponsiveContainer>
       </div>
 
-      {/* légende sous le graphique */}
       <div className="bpm-card__legend">
         <div className="bpm-card__legend-item">
-          <span className="bpm-card__dot bpm-card__dot--min"></span>
+          <span className="bpm-card__dot bpm-card__dot--min" />
           <span>Min</span>
         </div>
         <div className="bpm-card__legend-item">
-          <span className="bpm-card__dot bpm-card__dot--max"></span>
+          <span className="bpm-card__dot bpm-card__dot--max" />
           <span>Max BPM</span>
         </div>
         <div className="bpm-card__legend-item">
-          <span className="bpm-card__dot bpm-card__dot--avg"></span>
-          <span>Max BPM</span>
+          <span className="bpm-card__dot bpm-card__dot--avg" />
+          <span>Moy BPM</span>
         </div>
       </div>
     </section>

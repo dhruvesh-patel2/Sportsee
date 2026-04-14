@@ -7,55 +7,55 @@ import ProfileBanner from "../components/ProfileBanner";
 import DistanceCard from "../components/DistanceCard";
 import BpmCard from "../components/BpmCard";
 import WeeklyStats from "../components/WeeklyStats";
-import { getUserInfo, getUserActivity } from "../services/dataProvider";
+import {
+  getFutureActivityEndDate,
+  getUserInfo,
+  getUserActivity,
+  getUserGoal,
+} from "../services/dataProvider";
+import type { UserActivity, WeeklyDistancePoint } from "../utils/activity";
 import "../css/dashboard.css";
 
 export default function Dashboard() {
-  // permet de rediriger l'utilisateur
   const navigate = useNavigate();
-
-  // états pour le chargement et les erreurs
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // états pour stocker les données utilisateur et activité
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const [activity, setActivity] = useState<any[]>([]);
-
-  // récupération du contexte utilisateur
   const context = useContext(UserContext);
 
-  // sécurité si le contexte n'existe pas
-  if (!context) {
-    return <p>Erreur de contexte</p>;
-  }
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [activity, setActivity] = useState<UserActivity[]>([]);
+  const [runningData, setRunningData] = useState<WeeklyDistancePoint[]>([]);
+  const [goal, setGoal] = useState<number>(0);
+
+  if (!context) return <p>Erreur de contexte</p>;
 
   const { setUser } = context;
 
   useEffect(() => {
-    // récupération du token
     const token = getToken();
 
-    // si pas connecté, retour à la page login
     if (!token) {
       navigate("/");
       return;
     }
 
-    // chargement des données depuis le provider
     async function loadData() {
       try {
         setLoading(true);
         setError(null);
 
-        const [userData, activityData] = await Promise.all([
+        // Charge toutes les données en parallèle pour minimiser le temps d'attente.
+        const [userData, userGoal, activityResponse] = await Promise.all([
           getUserInfo(token!),
-          getUserActivity(token!),
+          getUserGoal(token!),
+          getUserActivity(token!, undefined, getFutureActivityEndDate()),
         ]);
 
         setUserInfo(userData);
-        setActivity(activityData);
-      } catch (err) {
+        setGoal(userGoal);
+        setActivity(activityResponse.activities);
+        setRunningData(activityResponse.runningData);
+      } catch {
         setError("Erreur lors du chargement des données");
       } finally {
         setLoading(false);
@@ -65,49 +65,31 @@ export default function Dashboard() {
     loadData();
   }, [navigate]);
 
-  // remet l'utilisateur à null lors de la déconnexion
   const handleLogout = () => {
     setUser(null);
   };
 
-  // affichage pendant le chargement
-  if (loading) {
-    return <p>Chargement...</p>;
-  }
-
-  // affichage en cas d'erreur
-  if (error) {
-    return <p>{error}</p>;
-  }
-
-  // affichage si aucune donnée utilisateur n'est disponible
-  if (!userInfo) {
-    return <p>Données indisponibles</p>;
-  }
+  if (loading) return <p>Chargement...</p>;
+  if (error) return <p>{error}</p>;
+  if (!userInfo) return <p>Données indisponibles</p>;
 
   return (
     <>
-      {/* en-tête du tableau de bord */}
       <Header onLogout={handleLogout} />
 
       <main className="dashboard">
-        {/* bannière du profil */}
         <ProfileBanner data={userInfo} />
 
-        {/* cartes des performances */}
         <section className="dashboard__performances">
-          <h2 className="dashboard__section-title">
-            Vos dernières performances
-          </h2>
+          <h2 className="dashboard__section-title">Vos dernières performances</h2>
 
           <div className="dashboard__cards">
-            <DistanceCard data={activity} />
+            <DistanceCard runningData={runningData} />
             <BpmCard data={activity} />
           </div>
         </section>
 
-        {/* statistiques hebdomadaires */}
-        <WeeklyStats data={activity} />
+        <WeeklyStats data={activity} goal={goal} />
       </main>
     </>
   );
