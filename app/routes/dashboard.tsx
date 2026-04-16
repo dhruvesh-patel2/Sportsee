@@ -14,7 +14,7 @@ import {
   getUserGoal,
 } from "../services/dataProvider";
 import type { UserActivity, WeeklyDistancePoint } from "../utils/activity";
-import "../css/dashboard.css";
+import styles from "../css/dashboard.module.css";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ export default function Dashboard() {
     const token = getToken();
 
     if (!token) {
-      navigate("/");
+      navigate("/", { replace: true, viewTransition: true });
       return;
     }
 
@@ -74,16 +74,16 @@ export default function Dashboard() {
   if (!userInfo) return <p>Données indisponibles</p>;
 
   return (
-    <>
+    <div className="page">
       <Header onLogout={handleLogout} />
 
-      <main className="dashboard">
+      <main className={styles.dashboard}>
         <ProfileBanner data={userInfo} />
 
-        <section className="dashboard__performances">
-          <h2 className="dashboard__section-title">Vos dernières performances</h2>
+        <section className={styles.dashboard__performances}>
+          <h2 className={styles.title}>Vos dernières performances</h2>
 
-          <div className="dashboard__cards">
+          <div className={styles.dashboard__cards}>
             <DistanceCard runningData={runningData} />
             <BpmCard data={activity} />
           </div>
@@ -91,6 +91,6 @@ export default function Dashboard() {
 
         <WeeklyStats data={activity} goal={goal} />
       </main>
-    </>
+    </div>
   );
 }

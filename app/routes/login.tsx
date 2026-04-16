@@ -48,7 +48,7 @@ export default function Login() {
     <main className="login-page">
       <section className="login-page__left">
         <div className="login-page__logo">
-          <img src="/Logo.png" alt="SportSee" />
+          <img src="/logo.png" alt="SportSee" />
         </div>
 
         <div className="login-card">

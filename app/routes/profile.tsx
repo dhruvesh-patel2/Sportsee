@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { getToken, removeToken } from "../utils/auth";
+import { getToken } from "../utils/auth";
 import { UserContext } from "../context/UserContext";
 import { getUserInfo, getUserActivity } from "../services/dataProvider";
 import type { UserActivity } from "../utils/activity";
@@ -55,6 +55,15 @@ function getRestDaysCount(activity: UserActivity[], startWeek: string | null | u
   return Math.max(0, totalDays - activeDays);
 }
 
+function StatValue({ main, unit }: { main: string; unit: string }) {
+  return (
+    <p className="profile-stat__value">
+      <span className="profile-stat__main">{main}</span>
+      <span className="profile-stat__unit">{unit}</span>
+    </p>
+  );
+}
+
 export default function Profile() {
   const navigate = useNavigate();
   const context = useContext(UserContext);
@@ -72,7 +81,7 @@ export default function Profile() {
     const token = getToken();
 
     if (!token) {
-      navigate("/");
+      navigate("/", { replace: true, viewTransition: true });
       return;
     }
 
@@ -98,9 +107,7 @@ export default function Profile() {
   }, [navigate]);
 
   const handleLogout = () => {
-    removeToken();
     setUser(null);
-    navigate("/");
   };
 
   if (loading) return <p>Vérification...</p>;
@@ -131,7 +138,7 @@ export default function Profile() {
   const minutes = totalDuration % 60;
 
   return (
-    <>
+    <div className="page">
       <Header onLogout={handleLogout} />
 
       <main className="profile-page">
@@ -175,32 +182,32 @@ export default function Profile() {
             <div className="profile-stats__grid">
               <article className="profile-stat">
                 <p className="profile-stat__label">Temps total couru</p>
-                <p className="profile-stat__value">{hours}h {minutes}min</p>
+                <StatValue main={`${hours}h`} unit={`${minutes}min`} />
               </article>
 
               <article className="profile-stat">
                 <p className="profile-stat__label">Calories brûlées</p>
-                <p className="profile-stat__value">{totalCalories} cal</p>
+                <StatValue main={String(totalCalories)} unit="cal" />
               </article>
 
               <article className="profile-stat">
                 <p className="profile-stat__label">Distance totale parcourue</p>
-                <p className="profile-stat__value">{Math.round(totalDistance)} km</p>
+                <StatValue main={String(Math.round(totalDistance))} unit="km" />
               </article>
 
               <article className="profile-stat">
                 <p className="profile-stat__label">Nombre de jours de repos</p>
-                <p className="profile-stat__value">{totalRestDays} jours</p>
+                <StatValue main={String(totalRestDays)} unit="jours" />
               </article>
 
               <article className="profile-stat">
                 <p className="profile-stat__label">Nombre de sessions</p>
-                <p className="profile-stat__value">{totalSessions} sessions</p>
+                <StatValue main={String(totalSessions)} unit="sessions" />
               </article>
             </div>
           </div>
         </section>
       </main>
-    </>
+    </div>
   );
 }

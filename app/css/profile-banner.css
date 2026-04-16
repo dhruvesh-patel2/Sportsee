@@ -1,4 +1,5 @@
 .profile-banner {
+  --profile-banner-glow: 243, 243, 251;
   width: 100%;
   max-width: 1027px;
   margin: 44px auto 0;
@@ -10,6 +11,47 @@
   justify-content: space-between;
   gap: 24px;
   box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  box-shadow: 0 18px 40px rgba(var(--profile-banner-glow), 0.9);
+}
+
+.profile-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(var(--profile-banner-glow), 0.22) 72%,
+    rgba(var(--profile-banner-glow), 0.64) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profile-banner::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -52px;
+  height: 128px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--profile-banner-glow), 0.96) 0%,
+    rgba(var(--profile-banner-glow), 0.74) 42%,
+    rgba(var(--profile-banner-glow), 0) 80%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.profile-banner > * {
+  position: relative;
+  z-index: 1;
 }
 
 .profile-banner__left {

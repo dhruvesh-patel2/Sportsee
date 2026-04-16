@@ -16,6 +16,8 @@ export default function WeeklyStats({ data, goal }: WeeklyStatsProps) {
 
   const completed = latestWeekActivities.length;
   const remaining = Math.max(0, goal - completed);
+  const completedLabel = `${completed} réalisée${completed > 1 ? "s" : ""}`;
+  const remainingLabel = `${remaining} restante${remaining > 1 ? "s" : ""}`;
 
   // Données du graphique : part réalisée vs part restante.
   const chartData = [
@@ -47,17 +49,33 @@ export default function WeeklyStats({ data, goal }: WeeklyStatsProps) {
           </h3>
           <p>Courses hebdomadaire réalisées</p>
 
-          <div className="weekly__chart">
-            <ResponsiveContainer width={200} height={200}>
-              <PieChart>
-                <Pie data={chartData} innerRadius={60} outerRadius={80} dataKey="value" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <div className="weekly__chart-area">
+            <div className="weekly__chart">
+              <ResponsiveContainer width={220} height={220}>
+                <PieChart>
+                <Pie
+                  data={chartData}
+                  dataKey="value"
+                  innerRadius={48}
+                  outerRadius={82}
+                  startAngle={0}
+                  endAngle={-360}
+                  stroke="none"
+                  isAnimationActive={false}
+                />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
 
-          <div className="weekly__legend">
-            <span><span className="weekly__dot weekly__dot--blue" /> {completed} réalisées</span>
-            <span><span className="weekly__dot weekly__dot--gray" /> {remaining} restantes</span>
+            <div className="weekly__legend weekly__legend--left">
+              <span className="weekly__dot weekly__dot--blue" />
+              <span>{completedLabel}</span>
+            </div>
+
+            <div className="weekly__legend weekly__legend--right">
+              <span className="weekly__dot weekly__dot--gray" />
+              <span>{remainingLabel}</span>
+            </div>
           </div>
         </div>
 

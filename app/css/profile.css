@@ -133,9 +133,23 @@
   
   .profile-stat__value {
     margin: 0;
-    font-size: 15px;
-    font-weight: 600;
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    flex-wrap: wrap;
+    line-height: 1;
+  }
+
+  .profile-stat__main {
+    font-size: 16px;
+    font-weight: 700;
     color: #ffffff;
+  }
+
+  .profile-stat__unit {
+    font-size: 12px;
+    font-weight: 600;
+    color: #c7d4ff;
   }
   
   @media (max-width: 980px) {

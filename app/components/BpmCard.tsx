@@ -56,6 +56,7 @@ export default function BpmCard({ data }: BpmCardProps) {
   const sortedActivities = sortActivitiesByDate(data);
   const pageCount = Math.max(1, Math.ceil(sortedActivities.length / ACTIVITIES_PER_PAGE));
   const [pageIndex, setPageIndex] = useState(Math.max(pageCount - 1, 0));
+  const [isChartHovered, setIsChartHovered] = useState(false);
 
   // Synchronise la page courante quand les données changent.
   useEffect(() => {
@@ -118,7 +119,12 @@ export default function BpmCard({ data }: BpmCardProps) {
 
       <div className="bpm-card__chart">
         <ResponsiveContainer width="100%" height={290}>
-          <ComposedChart data={bpmChartData} barCategoryGap={22}>
+          <ComposedChart
+            data={bpmChartData}
+            barCategoryGap={22}
+            onMouseMove={(state) => setIsChartHovered(Boolean(state?.isTooltipActive))}
+            onMouseLeave={() => setIsChartHovered(false)}
+          >
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e7e7e7" />
             <XAxis dataKey="day" tickLine={false} axisLine={false} />
             <YAxis
@@ -128,21 +134,28 @@ export default function BpmCard({ data }: BpmCardProps) {
               axisLine={false}
             />
             <Tooltip content={<CustomBpmTooltip />} cursor={{ fill: "transparent" }} />
-            <Bar dataKey="min" fill="#f3b8ac" radius={[10, 10, 10, 10]} barSize={14} />
+            <Bar
+              dataKey="min"
+              fill="#f3b8ac"
+              radius={[10, 10, 10, 10]}
+              barSize={14}
+              isAnimationActive={false}
+            />
             <Bar
               dataKey="max"
               fill="#ff3b0a"
-              activeBar={{ fill: "#e73300" }}
               radius={[10, 10, 10, 10]}
               barSize={14}
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
               dataKey="average"
-              stroke="#7f8cff"
+              stroke={isChartHovered ? "#1f38ff" : "#e3e8ff"}
               strokeWidth={3}
               dot={{ r: 4, fill: "#1f38ff", stroke: "#ffffff", strokeWidth: 1 }}
-              activeDot={{ r: 5 }}
+              activeDot={{ r: 5, fill: "#1f38ff", stroke: "#ffffff", strokeWidth: 1 }}
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>

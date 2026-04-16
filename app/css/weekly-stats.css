@@ -40,16 +40,36 @@
   color: #1f38ff;
 }
 
+.weekly__chart-area {
+  position: relative;
+  min-height: 230px;
+  margin: 12px 0 10px;
+}
+
 .weekly__chart {
   display: flex;
   justify-content: center;
-  margin: 20px 0;
+  margin: 0;
 }
 
 .weekly__legend {
+  position: absolute;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
+  color: #6f7595;
+  white-space: nowrap;
+}
+
+.weekly__legend--left {
+  left: 26px;
+  bottom: 28px;
+}
+
+.weekly__legend--right {
+  top: 28px;
+  right: 22px;
 }
 
 .weekly__dot {
@@ -97,4 +117,17 @@
 
 .orange {
   color: #ff3b0a;
+}
+
+@media (max-width: 560px) {
+  .weekly__chart-area {
+    min-height: auto;
+    padding-bottom: 42px;
+  }
+
+  .weekly__legend--right {
+    top: auto;
+    right: 12px;
+    bottom: 10px;
+  }
 }

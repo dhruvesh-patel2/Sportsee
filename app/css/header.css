@@ -29,9 +29,9 @@
 .header__nav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 18px;
   background: #ffffff;
-  padding: 7px 14px;
+  padding: 8px 22px;
   border-radius: 999px;
 }
 
@@ -44,16 +44,33 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 8px 14px;
-  border-radius: 999px;
-  transition: background 0.2s ease;
+  padding: 6px 0;
+  transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .header__link:hover,
 .header__logout:hover {
-  background: #f4f4f8;
+  color: #243cff;
+}
+
+.header__link--active {
+  color: #243cff;
 }
 
 .header__logout {
+  position: relative;
+  margin-left: 8px;
+  padding-left: 22px;
   color: #3b4cff;
+}
+
+.header__logout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 16px;
+  background: #cad0ff;
+  transform: translateY(-50%);
 }
